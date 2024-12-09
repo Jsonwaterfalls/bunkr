@@ -21,9 +21,23 @@ export const SharePostDialog = ({ post }: SharePostDialogProps) => {
   const handleShare = async () => {
     try {
       setIsLoading(true);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to share posts",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase.from("posts").insert({
-        statement: comment,
+        statement: comment || "Shared a post", // Use comment if provided, otherwise default text
         reference_post_id: post.id,
+        user_id: user.id
       });
 
       if (error) throw error;
@@ -34,6 +48,7 @@ export const SharePostDialog = ({ post }: SharePostDialogProps) => {
       });
       setComment("");
     } catch (error) {
+      console.error("Error sharing post:", error);
       toast({
         title: "Error",
         description: "Failed to share post",
