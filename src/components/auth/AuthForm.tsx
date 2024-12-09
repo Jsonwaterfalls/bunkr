@@ -9,6 +9,7 @@ const AuthForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
 
@@ -23,6 +24,7 @@ const AuthForm = () => {
           options: {
             data: {
               username,
+              phone_number: phoneNumber,
             },
           },
         });
@@ -63,16 +65,30 @@ const AuthForm = () => {
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {isSignUp && (
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="+1234567890"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                required
+              />
+            </div>
+          </>
         )}
         
         <div className="space-y-2">
