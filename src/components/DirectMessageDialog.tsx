@@ -19,8 +19,13 @@ export const DirectMessageDialog = ({ recipientId, recipientUsername }: DirectMe
   const handleSendMessage = async () => {
     try {
       setIsLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const { error } = await supabase.from("direct_messages").insert({
         recipient_id: recipientId,
+        sender_id: user.id,
         content: message,
       });
 
@@ -32,6 +37,7 @@ export const DirectMessageDialog = ({ recipientId, recipientUsername }: DirectMe
       });
       setMessage("");
     } catch (error) {
+      console.error("Error sending message:", error);
       toast({
         title: "Error",
         description: "Failed to send message",
