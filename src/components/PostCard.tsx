@@ -71,7 +71,11 @@ export const PostCard = ({ post }: PostCardProps) => {
         <PostVerificationResults results={post.verification_results} />
       </CardContent>
       <CardFooter>
-        <PostFooter postId={post.id} userId={user?.id} />
+        <PostFooter 
+          postId={post.id} 
+          userId={user?.id} 
+          statement={post.statement}
+        />
       </CardFooter>
     </Card>
   );

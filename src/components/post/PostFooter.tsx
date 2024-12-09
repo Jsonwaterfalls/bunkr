@@ -8,9 +8,10 @@ import { CommentSection } from "../CommentSection";
 interface PostFooterProps {
   postId: string;
   userId?: string;
+  statement: string; // Add statement to props
 }
 
-export const PostFooter = ({ postId, userId }: PostFooterProps) => {
+export const PostFooter = ({ postId, userId, statement }: PostFooterProps) => {
   const [showComments, setShowComments] = useState(false);
 
   return (
@@ -18,7 +19,7 @@ export const PostFooter = ({ postId, userId }: PostFooterProps) => {
       <div className="flex justify-between items-center">
         <PostReactions postId={postId} userId={userId} />
         <div className="flex items-center gap-2">
-          <SharePostDialog post={{ id: postId }} />
+          <SharePostDialog post={{ id: postId, statement }} />
           <Button
             variant="ghost"
             className="gap-2"
