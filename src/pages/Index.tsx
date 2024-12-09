@@ -14,6 +14,9 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Set the document title
+    document.title = "BUNKr - Verify Statements";
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
