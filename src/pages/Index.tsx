@@ -1,19 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import AuthForm from "@/components/auth/AuthForm";
-import { VerificationForm } from "@/components/VerificationForm";
-import { ResultCard } from "@/components/ResultCard";
-import { Feed } from "@/components/Feed";
-import { SearchUsers } from "@/components/SearchUsers";
-import { TrendingTopics } from "@/components/TrendingTopics";
-import { NotificationsPopover } from "@/components/NotificationsPopover";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Upload, User } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { MainContent } from "@/components/MainContent";
 
 const Index = () => {
   const [session, setSession] = useState<any>(null);
@@ -67,18 +57,14 @@ const Index = () => {
         .from("avatars")
         .upload(filePath, file);
 
-      if (uploadError) {
-        throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: filePath })
         .eq("id", session?.user.id);
 
-      if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       toast({
         title: "Success",
@@ -86,20 +72,15 @@ const Index = () => {
       });
       
       fetchProfile(session?.user.id);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Error uploading avatar",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
       setUploading(false);
     }
-  };
-
-  const handleVerify = (statement: string, results: any[]) => {
-    setCurrentStatement(statement);
-    setVerificationResults(results);
   };
 
   const handleUpdateUsername = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -121,125 +102,50 @@ const Index = () => {
       });
       
       fetchProfile(session?.user.id);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Error updating username",
+        description: error.message,
         variant: "destructive",
       });
     }
   };
 
-  const Logo = () => (
-    <div className="w-full flex justify-center mb-8">
-      <img 
-        src="/lovable-uploads/bbbcc199-7eed-436a-864f-91dc9f0a1df4.png" 
-        alt="BUNKr Logo" 
-        className="h-16 md:h-20"
-      />
-    </div>
-  );
+  const handleVerify = (statement: string, results: any[]) => {
+    setCurrentStatement(statement);
+    setVerificationResults(results);
+  };
 
   if (!session) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Logo />
+        <div className="w-full flex justify-center mb-8">
+          <img 
+            src="/lovable-uploads/bbbcc199-7eed-436a-864f-91dc9f0a1df4.png" 
+            alt="BUNKr Logo" 
+            className="h-12 md:h-16"
+          />
+        </div>
         <AuthForm />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4 md:py-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex flex-col items-center">
-          <Logo />
-          <div className="w-full flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage
-                    src={
-                      profile?.avatar_url
-                        ? `https://rwmfoqgrvinrcxkjtzdz.supabase.co/storage/v1/object/public/avatars/${profile.avatar_url}`
-                        : undefined
-                    }
-                  />
-                  <AvatarFallback>
-                    {profile?.username?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <label
-                  htmlFor="avatar-upload"
-                  className="absolute bottom-0 right-0 p-1 bg-primary rounded-full cursor-pointer hover:bg-primary/80 transition-colors"
-                >
-                  <Upload className="h-4 w-4" />
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarUpload}
-                    disabled={uploading}
-                  />
-                </label>
-              </div>
-              <form onSubmit={handleUpdateUsername} className="flex gap-2">
-                <Input
-                  name="username"
-                  placeholder="Update username"
-                  defaultValue={profile?.username || ""}
-                />
-                <Button type="submit" size="sm">
-                  Update
-                </Button>
-              </form>
-            </div>
-            <div className="flex items-center gap-2">
-              <NotificationsPopover />
-              <Link to={`/profile/${session?.user.id}`}>
-                <Button variant="ghost" size="icon">
-                  <User className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                onClick={() => supabase.auth.signOut()}
-                className="text-sm"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <Tabs defaultValue="verify" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="verify">Verify Statement</TabsTrigger>
-            <TabsTrigger value="explore">Explore</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="verify" className="space-y-4">
-            <VerificationForm onVerify={handleVerify} />
-            {verificationResults.length > 0 && (
-              <ResultCard
-                statement={currentStatement}
-                results={verificationResults}
-              />
-            )}
-          </TabsContent>
-          
-          <TabsContent value="explore" className="space-y-8">
-            <SearchUsers />
-            <TrendingTopics />
-          </TabsContent>
-        </Tabs>
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4">Recent Verifications</h2>
-          <Feed />
-        </div>
+        <Header
+          profile={profile}
+          session={session}
+          onUpdateUsername={handleUpdateUsername}
+          onAvatarUpload={handleAvatarUpload}
+          uploading={uploading}
+        />
+        <MainContent
+          verificationResults={verificationResults}
+          currentStatement={currentStatement}
+          onVerify={handleVerify}
+        />
       </div>
     </div>
   );

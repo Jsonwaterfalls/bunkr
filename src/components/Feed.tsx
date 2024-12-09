@@ -4,10 +4,12 @@ import { PostCard } from "./PostCard";
 import { ScrollArea } from "./ui/scroll-area";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Feed = () => {
   const [user, setUser] = useState<any>(null);
   const [feedType, setFeedType] = useState<"all" | "following">("all");
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -37,7 +39,7 @@ export const Feed = () => {
         if (followingUserIds.length > 0) {
           query = query.in("user_id", followingUserIds);
         } else {
-          return []; // Return empty array if not following anyone
+          return [];
         }
       }
 
@@ -57,21 +59,23 @@ export const Feed = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="flex gap-2 sticky top-0 bg-background z-10 py-2">
         <Button
           variant={feedType === "all" ? "default" : "outline"}
           onClick={() => setFeedType("all")}
+          className="flex-1 md:flex-none"
         >
           All Posts
         </Button>
         <Button
           variant={feedType === "following" ? "default" : "outline"}
           onClick={() => setFeedType("following")}
+          className="flex-1 md:flex-none"
         >
           Following
         </Button>
       </div>
-      <ScrollArea className="h-[600px] w-full rounded-md border p-4">
+      <ScrollArea className={`${isMobile ? 'h-[calc(100vh-300px)]' : 'h-[600px]'} w-full rounded-md border p-4`}>
         <div className="space-y-4">
           {posts?.map((post) => (
             <PostCard key={post.id} post={post} />
