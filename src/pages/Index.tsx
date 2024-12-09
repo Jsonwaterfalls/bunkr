@@ -15,7 +15,7 @@ const Index = () => {
 
   useEffect(() => {
     // Set the document title
-    document.title = "BUNKr - Verify Statements";
+    document.title = "BUNKr";
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
