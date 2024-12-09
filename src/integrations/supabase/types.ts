@@ -44,6 +44,36 @@ export type Database = {
           },
         ]
       }
+      direct_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          read: boolean | null
+          recipient_id: string
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          read?: boolean | null
+          recipient_id: string
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          read?: boolean | null
+          recipient_id?: string
+          sender_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string | null
@@ -142,6 +172,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          reference_post_id: string | null
           statement: string
           updated_at: string | null
           user_id: string | null
@@ -149,6 +180,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          reference_post_id?: string | null
           statement: string
           updated_at?: string | null
           user_id?: string | null
@@ -156,11 +188,20 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          reference_post_id?: string | null
           statement?: string
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_reference_post_id_fkey"
+            columns: ["reference_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

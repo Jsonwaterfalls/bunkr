@@ -7,6 +7,8 @@ import { CommentSection } from "./CommentSection";
 import { PostReactions } from "./PostReactions";
 import { supabase } from "@/integrations/supabase/client";
 import { FollowButton } from "./FollowButton";
+import { DirectMessageDialog } from "./DirectMessageDialog";
+import { SharePostDialog } from "./SharePostDialog";
 
 interface PostCardProps {
   post: {
@@ -14,6 +16,7 @@ interface PostCardProps {
     user_id: string;
     statement: string;
     created_at: string;
+    reference_post_id?: string;
     verification_results: Array<{
       verdict: string;
       confidence: number;
@@ -26,12 +29,36 @@ interface PostCardProps {
 export const PostCard = ({ post }: PostCardProps) => {
   const [showComments, setShowComments] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [referencePost, setReferencePost] = useState<any>(null);
+  const [postUser, setPostUser] = useState<any>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
-  }, []);
+
+    // Fetch the referenced post if it exists
+    if (post.reference_post_id) {
+      supabase
+        .from("posts")
+        .select("*")
+        .eq("id", post.reference_post_id)
+        .single()
+        .then(({ data }) => {
+          setReferencePost(data);
+        });
+    }
+
+    // Fetch the post creator's profile
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", post.user_id)
+      .single()
+      .then(({ data }) => {
+        setPostUser(data);
+      });
+  }, [post.reference_post_id, post.user_id]);
 
   const getVerdictColor = (verdict: string) => {
     switch (verdict.toLowerCase()) {
@@ -48,13 +75,34 @@ export const PostCard = ({ post }: PostCardProps) => {
     <Card className="w-full animate-fadeIn">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-          </p>
-          <FollowButton targetUserId={post.user_id} currentUserId={user?.id} />
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium">
+              {postUser?.username || "Anonymous"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {user?.id !== post.user_id && (
+              <>
+                <DirectMessageDialog
+                  recipientId={post.user_id}
+                  recipientUsername={postUser?.username}
+                />
+                <FollowButton targetUserId={post.user_id} currentUserId={user?.id} />
+              </>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {referencePost && (
+          <div className="rounded-lg bg-muted p-4 text-sm">
+            <p className="text-muted-foreground mb-2">Shared post:</p>
+            <p>{referencePost.statement}</p>
+          </div>
+        )}
         <p className="text-lg">{post.statement}</p>
         <div className="space-y-2">
           {post.verification_results?.map((result, index) => (
@@ -76,14 +124,17 @@ export const PostCard = ({ post }: PostCardProps) => {
       <CardFooter className="flex flex-col items-stretch gap-4">
         <div className="flex justify-between items-center">
           <PostReactions postId={post.id} userId={user?.id} />
-          <Button
-            variant="ghost"
-            className="gap-2"
-            onClick={() => setShowComments(!showComments)}
-          >
-            <MessageSquare className="h-4 w-4" />
-            Comments
-          </Button>
+          <div className="flex items-center gap-2">
+            <SharePostDialog post={post} />
+            <Button
+              variant="ghost"
+              className="gap-2"
+              onClick={() => setShowComments(!showComments)}
+            >
+              <MessageSquare className="h-4 w-4" />
+              Comments
+            </Button>
+          </div>
         </div>
         {showComments && <CommentSection postId={post.id} />}
       </CardFooter>
