@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import AuthForm from "./AuthForm";
 
 interface AuthWrapperProps {
   children: React.ReactNode;
 }
 
 export const AuthWrapper = ({ children }: AuthWrapperProps) => {
+  // For beta testing, we'll always render the children
+  return <>{children}</>;
+  
+  // Original authentication code commented out for future use
+  /*
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
@@ -37,6 +41,5 @@ export const AuthWrapper = ({ children }: AuthWrapperProps) => {
       </div>
     );
   }
-
-  return <>{children}</>;
+  */
 };
