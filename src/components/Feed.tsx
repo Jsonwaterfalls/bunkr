@@ -2,23 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostCard } from "./PostCard";
 import { ScrollArea } from "./ui/scroll-area";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "./ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Feed = () => {
-  const [user, setUser] = useState<any>(null);
+  // For beta testing, use a default user ID
+  const defaultUserId = "00000000-0000-0000-0000-000000000000";
   const [feedType, setFeedType] = useState<"all" | "following">("all");
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
-  }, []);
-
   const { data: posts, isLoading } = useQuery({
-    queryKey: ["posts", feedType, user?.id],
+    queryKey: ["posts", feedType, defaultUserId],
     queryFn: async () => {
       let query = supabase
         .from("posts")
@@ -28,11 +23,11 @@ export const Feed = () => {
         `)
         .order("created_at", { ascending: false });
 
-      if (feedType === "following" && user?.id) {
+      if (feedType === "following") {
         const { data: followingIds } = await supabase
           .from("follows")
           .select("following_id")
-          .eq("follower_id", user.id);
+          .eq("follower_id", defaultUserId);
 
         const followingUserIds = followingIds?.map(f => f.following_id) || [];
         

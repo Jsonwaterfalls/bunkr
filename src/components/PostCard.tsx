@@ -23,15 +23,12 @@ interface PostCardProps {
 }
 
 export const PostCard = ({ post }: PostCardProps) => {
-  const [user, setUser] = useState<any>(null);
+  // For beta testing, use a default user
+  const defaultUserId = "00000000-0000-0000-0000-000000000000";
   const [referencePost, setReferencePost] = useState<any>(null);
   const [postUser, setPostUser] = useState<any>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
-
     if (post.reference_post_id) {
       supabase
         .from("posts")
@@ -49,7 +46,7 @@ export const PostCard = ({ post }: PostCardProps) => {
       .eq("id", post.user_id)
       .single()
       .then(({ data }) => {
-        setPostUser(data);
+        setPostUser(data || { username: "Anonymous User" });
       });
   }, [post.reference_post_id, post.user_id]);
 
@@ -59,7 +56,7 @@ export const PostCard = ({ post }: PostCardProps) => {
         <PostHeader
           postUserId={post.user_id}
           postUsername={postUser?.username}
-          currentUserId={user?.id}
+          currentUserId={defaultUserId}
           createdAt={post.created_at}
         />
       </CardHeader>
@@ -73,7 +70,7 @@ export const PostCard = ({ post }: PostCardProps) => {
       <CardFooter>
         <PostFooter 
           postId={post.id} 
-          userId={user?.id} 
+          userId={defaultUserId}
           statement={post.statement}
         />
       </CardFooter>

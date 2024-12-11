@@ -15,7 +15,12 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!statement.trim()) return;
-    await verifyStatement(statement);
+    
+    // For beta testing, create a post with the default user ID
+    const defaultUserId = "00000000-0000-0000-0000-000000000000";
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    await verifyStatement(statement, user?.id || defaultUserId);
   };
 
   const handleTranscription = (text: string) => {
