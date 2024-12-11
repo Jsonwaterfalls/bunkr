@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface UseVerificationResult {
   isVerifying: boolean;
-  verifyStatement: (statement: string) => Promise<void>;
+  verifyStatement: (statement: string, userId: string) => Promise<void>;
 }
 
 export const useVerification = (
@@ -13,7 +13,7 @@ export const useVerification = (
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
 
-  const verifyStatement = async (statement: string) => {
+  const verifyStatement = async (statement: string, userId: string) => {
     if (!statement.trim()) {
       toast({
         title: "Error",
@@ -25,22 +25,11 @@ export const useVerification = (
 
     setIsVerifying(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to verify statements",
-          variant: "destructive",
-        });
-        return;
-      }
-
       // Create post first
       const { data: post, error: postError } = await supabase
         .from('posts')
         .insert([
-          { user_id: user.id, statement: statement.trim() }
+          { user_id: userId, statement: statement.trim() }
         ])
         .select()
         .single();

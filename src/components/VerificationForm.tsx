@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { useVerification } from "@/hooks/useVerification";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VerificationFormProps {
   onVerify: (statement: string, results: any[]) => void;
@@ -16,11 +17,9 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
     e.preventDefault();
     if (!statement.trim()) return;
     
-    // For beta testing, create a post with the default user ID
+    // For beta testing, use default user ID
     const defaultUserId = "00000000-0000-0000-0000-000000000000";
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    await verifyStatement(statement, user?.id || defaultUserId);
+    await verifyStatement(statement, defaultUserId);
   };
 
   const handleTranscription = (text: string) => {
