@@ -18,16 +18,23 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
     if (!statement.trim()) return;
     
     try {
-      // First create a temporary user for beta testing
+      // Generate a UUID for the temporary user
+      const tempUserId = crypto.randomUUID();
+      
+      // Create a temporary profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .insert([
-          { username: 'beta_tester_' + Date.now() }
-        ])
+        .insert({
+          id: tempUserId,
+          username: 'beta_tester_' + Date.now()
+        })
         .select()
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        throw profileError;
+      }
 
       // Use the newly created profile's ID
       await verifyStatement(statement, profile.id);

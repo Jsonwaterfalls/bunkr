@@ -19,12 +19,17 @@ export const FollowButton = ({ targetUserId, currentUserId }: FollowButtonProps)
     queryFn: async () => {
       if (!currentUserId) return false;
       
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("follows")
         .select("*")
         .eq("follower_id", currentUserId)
         .eq("following_id", targetUserId)
-        .single();
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Follow check error:", error);
+        return false;
+      }
       
       return !!data;
     },
