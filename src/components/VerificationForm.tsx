@@ -17,9 +17,23 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
     e.preventDefault();
     if (!statement.trim()) return;
     
-    // For beta testing, use default user ID
-    const defaultUserId = "00000000-0000-0000-0000-000000000000";
-    await verifyStatement(statement, defaultUserId);
+    try {
+      // First create a temporary user for beta testing
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          { username: 'beta_tester_' + Date.now() }
+        ])
+        .select()
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Use the newly created profile's ID
+      await verifyStatement(statement, profile.id);
+    } catch (error) {
+      console.error('Error creating beta tester profile:', error);
+    }
   };
 
   const handleTranscription = (text: string) => {

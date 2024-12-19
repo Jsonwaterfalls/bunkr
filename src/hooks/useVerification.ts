@@ -35,6 +35,7 @@ export const useVerification = (
         .single();
 
       if (postError) {
+        console.error('Post creation error:', postError);
         throw postError;
       }
 
@@ -46,7 +47,10 @@ export const useVerification = (
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Verification error:', error);
+        throw error;
+      }
       
       onVerify(statement, data.results);
       
@@ -58,7 +62,7 @@ export const useVerification = (
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to verify statement",
+        description: "Failed to verify statement. Please try again.",
         variant: "destructive",
       });
     } finally {
