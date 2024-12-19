@@ -20,31 +20,25 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
     if (!statement.trim()) return;
     
     try {
-      // Generate a UUID for the temporary user
-      const tempUserId = crypto.randomUUID();
+      // Sign in anonymously to create a temporary user
+      const { data: { user }, error: authError } = await supabase.auth.signInAnonymously();
       
-      // Create a temporary profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .insert([{
-          id: tempUserId,
-          username: 'beta_tester_' + Date.now()
-        }])
-        .select()
-        .maybeSingle();
-
-      if (profileError || !profile) {
-        console.error('Profile creation error:', profileError);
+      if (authError || !user) {
+        console.error('Anonymous auth error:', authError);
         toast({
           title: "Error",
-          description: "Failed to create temporary profile",
+          description: "Failed to create temporary session",
           variant: "destructive",
         });
         return;
       }
 
-      // Use the profile's ID for verification
-      await verifyStatement(statement, profile.id);
+      // The profile will be created automatically by the handle_new_user trigger
+      // Wait a brief moment for the trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Use the anonymous user's ID for verification
+      await verifyStatement(statement, user.id);
     } catch (error) {
       console.error('Error in verification process:', error);
       toast({
