@@ -29,11 +29,15 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
           username: 'beta_tester_' + Date.now()
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
         throw profileError;
+      }
+
+      if (!profile) {
+        throw new Error('Failed to create temporary profile');
       }
 
       // Use the newly created profile's ID
