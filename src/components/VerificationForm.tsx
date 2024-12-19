@@ -24,15 +24,16 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
       const tempUserId = crypto.randomUUID();
       
       // Create a temporary profile
-      const { data: profiles, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .insert([{
           id: tempUserId,
           username: 'beta_tester_' + Date.now()
         }])
-        .select();
+        .select()
+        .maybeSingle();
 
-      if (profileError) {
+      if (profileError || !profile) {
         console.error('Profile creation error:', profileError);
         toast({
           title: "Error",
@@ -42,17 +43,8 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         return;
       }
 
-      if (!profiles || profiles.length === 0) {
-        toast({
-          title: "Error",
-          description: "Failed to create temporary profile",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Use the first profile's ID
-      await verifyStatement(statement, profiles[0].id);
+      // Use the profile's ID for verification
+      await verifyStatement(statement, profile.id);
     } catch (error) {
       console.error('Error in verification process:', error);
       toast({
