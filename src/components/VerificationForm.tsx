@@ -33,12 +33,37 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         return;
       }
 
-      // The profile will be created automatically by the handle_new_user trigger
-      // Wait a brief moment for the trigger to complete
+      // Wait for profile creation and verify it exists
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select()
+        .eq('id', user.id)
+        .maybeSingle();
 
-      // Use the anonymous user's ID for verification
-      await verifyStatement(statement, user.id);
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch user profile",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!profile) {
+        console.error('Profile not found after creation');
+        toast({
+          title: "Error",
+          description: "Profile creation failed",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Use the verified profile's ID for verification
+      await verifyStatement(statement, profile.id);
     } catch (error) {
       console.error('Error in verification process:', error);
       toast({
