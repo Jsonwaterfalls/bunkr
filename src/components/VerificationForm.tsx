@@ -4,6 +4,7 @@ import { Textarea } from "./ui/textarea";
 import { useVerification } from "@/hooks/useVerification";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface VerificationFormProps {
   onVerify: (statement: string, results: any[]) => void;
@@ -12,6 +13,7 @@ interface VerificationFormProps {
 export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
   const [statement, setStatement] = useState("");
   const { isVerifying, verifyStatement } = useVerification(onVerify);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,28 +24,42 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
       const tempUserId = crypto.randomUUID();
       
       // Create a temporary profile
-      const { data: profile, error: profileError } = await supabase
+      const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .insert({
+        .insert([{
           id: tempUserId,
           username: 'beta_tester_' + Date.now()
-        })
-        .select()
-        .maybeSingle();
+        }])
+        .select();
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        throw profileError;
+        toast({
+          title: "Error",
+          description: "Failed to create temporary profile",
+          variant: "destructive",
+        });
+        return;
       }
 
-      if (!profile) {
-        throw new Error('Failed to create temporary profile');
+      if (!profiles || profiles.length === 0) {
+        toast({
+          title: "Error",
+          description: "Failed to create temporary profile",
+          variant: "destructive",
+        });
+        return;
       }
 
-      // Use the newly created profile's ID
-      await verifyStatement(statement, profile.id);
+      // Use the first profile's ID
+      await verifyStatement(statement, profiles[0].id);
     } catch (error) {
-      console.error('Error creating beta tester profile:', error);
+      console.error('Error in verification process:', error);
+      toast({
+        title: "Error",
+        description: "Failed to verify statement",
+        variant: "destructive",
+      });
     }
   };
 
