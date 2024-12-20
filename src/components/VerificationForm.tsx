@@ -20,7 +20,6 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
     if (!statement.trim()) return;
     
     try {
-      // Sign in anonymously to create a temporary user
       const { data: { user }, error: authError } = await supabase.auth.signInAnonymously();
       
       if (authError || !user) {
@@ -33,7 +32,6 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         return;
       }
 
-      // Proceed directly with verification using the user ID
       await verifyStatement(statement, user.id);
       
     } catch (error) {
