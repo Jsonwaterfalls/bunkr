@@ -33,38 +33,8 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         return;
       }
 
-      // Wait for profile creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Attempt to fetch the profile multiple times
-      let profile = null;
-      let attempts = 0;
-      const maxAttempts = 3;
-
-      while (attempts < maxAttempts && !profile) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select()
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (!error && data) {
-          profile = data;
-          break;
-        }
-
-        attempts++;
-        if (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-
-      if (!profile) {
-        throw new Error('Failed to create or fetch profile after multiple attempts');
-      }
-
-      // Proceed with verification using the confirmed profile
-      await verifyStatement(statement, profile.id);
+      // Proceed directly with verification using the user ID
+      await verifyStatement(statement, user.id);
       
     } catch (error) {
       console.error('Error in verification process:', error);
