@@ -33,42 +33,44 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         return;
       }
 
-      // Wait for profile creation and verify it exists
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select()
-        .eq('id', user.id)
-        .maybeSingle();
+      // Wait for profile creation
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      if (profileError) {
-        console.error('Profile fetch error:', profileError);
-        toast({
-          title: "Error",
-          description: "Failed to fetch user profile",
-          variant: "destructive",
-        });
-        return;
+      // Attempt to fetch the profile multiple times
+      let profile = null;
+      let attempts = 0;
+      const maxAttempts = 3;
+
+      while (attempts < maxAttempts && !profile) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!error && data) {
+          profile = data;
+          break;
+        }
+
+        attempts++;
+        if (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
 
       if (!profile) {
-        console.error('Profile not found after creation');
-        toast({
-          title: "Error",
-          description: "Profile creation failed",
-          variant: "destructive",
-        });
-        return;
+        throw new Error('Failed to create or fetch profile after multiple attempts');
       }
 
-      // Use the verified profile's ID for verification
+      // Proceed with verification using the confirmed profile
       await verifyStatement(statement, profile.id);
+      
     } catch (error) {
       console.error('Error in verification process:', error);
       toast({
         title: "Error",
-        description: "Failed to verify statement",
+        description: "Failed to verify statement. Please try again.",
         variant: "destructive",
       });
     }
