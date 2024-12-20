@@ -8,12 +8,32 @@ export const ProfileManager = () => {
   const { toast } = useToast();
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-    setProfile(data);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch profile",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setProfile(data);
+    } catch (error: any) {
+      console.error("Error in fetchProfile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch profile",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
