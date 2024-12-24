@@ -48,22 +48,10 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!statement.trim()) return;
+    if (!statement.trim() && !mediaFile) return;
     
     setIsSubmitting(true);
     try {
-      const { data: { user }, error: authError } = await supabase.auth.signInAnonymously();
-      
-      if (authError || !user) {
-        console.error('Anonymous auth error:', authError);
-        toast({
-          title: "Error",
-          description: "Failed to create temporary session",
-          variant: "destructive",
-        });
-        return;
-      }
-
       let mediaUrl = null;
       let mediaType = null;
 
@@ -87,12 +75,11 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         mediaType = mediaFile.type.startsWith('image/') ? 'image' : 'video';
       }
 
-      // Create the post first
+      // Create the post
       const { data: post, error: postError } = await supabase
         .from('posts')
         .insert([
           { 
-            user_id: user.id, 
             statement: statement.trim(),
             media_url: mediaUrl,
             media_type: mediaType
@@ -104,7 +91,7 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
       if (postError) throw postError;
 
       if (shouldVerify) {
-        await verifyStatement(statement, user.id);
+        await verifyStatement(statement);
       }
 
       setStatement("");
