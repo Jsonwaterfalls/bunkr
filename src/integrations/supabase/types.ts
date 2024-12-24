@@ -172,6 +172,8 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          media_type: string | null
+          media_url: string | null
           reference_post_id: string | null
           statement: string
           updated_at: string | null
@@ -180,6 +182,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           reference_post_id?: string | null
           statement: string
           updated_at?: string | null
@@ -188,6 +192,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           reference_post_id?: string | null
           statement?: string
           updated_at?: string | null

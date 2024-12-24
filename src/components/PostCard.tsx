@@ -14,6 +14,8 @@ interface PostCardProps {
     statement: string;
     created_at: string;
     reference_post_id?: string;
+    media_url?: string | null;
+    media_type?: string | null;
     verification_results: Array<{
       verdict: string;
       confidence: number;
@@ -79,8 +81,12 @@ export const PostCard = ({ post }: PostCardProps) => {
         <PostContent
           statement={post.statement}
           referencePost={referencePost}
+          mediaUrl={post.media_url}
+          mediaType={post.media_type}
         />
-        <PostVerificationResults results={post.verification_results} />
+        {post.verification_results?.length > 0 && (
+          <PostVerificationResults results={post.verification_results} />
+        )}
       </CardContent>
       <CardFooter>
         <PostFooter 
