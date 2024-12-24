@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const SignUpForm = () => {
@@ -10,10 +10,12 @@ const SignUpForm = () => {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     try {
       const { error } = await supabase.auth.signUp({
@@ -39,6 +41,8 @@ const SignUpForm = () => {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,6 +56,7 @@ const SignUpForm = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          disabled={isLoading}
         />
       </div>
       
@@ -64,6 +69,7 @@ const SignUpForm = () => {
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
           required
+          disabled={isLoading}
         />
       </div>
       
@@ -75,6 +81,7 @@ const SignUpForm = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={isLoading}
         />
       </div>
       
@@ -86,11 +93,12 @@ const SignUpForm = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          disabled={isLoading}
         />
       </div>
       
-      <Button type="submit" className="w-full">
-        Sign Up
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Creating account..." : "Sign Up"}
       </Button>
     </form>
   );

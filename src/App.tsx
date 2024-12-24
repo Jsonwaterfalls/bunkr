@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
+import { AuthWrapper } from "./components/auth/AuthWrapper";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,8 +26,23 @@ const App: React.FC = () => {
           <Sonner />
           <Routes>
             <Route path="/" element={<Landing />} />
-            <Route path="/app" element={<Index />} />
-            <Route path="/profile/:id" element={<Profile />} />
+            <Route
+              path="/app"
+              element={
+                <AuthWrapper>
+                  <Index />
+                </AuthWrapper>
+              }
+            />
+            <Route
+              path="/profile/:id"
+              element={
+                <AuthWrapper>
+                  <Profile />
+                </AuthWrapper>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </TooltipProvider>
       </QueryClientProvider>
