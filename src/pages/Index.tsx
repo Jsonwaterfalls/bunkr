@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { MainContent } from "@/components/MainContent";
-import { Sidebar } from "@/components/ui/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Header } from "@/components/layout/Header";
+import { AppSidebar } from "@/components/layout/AppSidebar";
 
 const Index = () => {
   const [verificationResults, setVerificationResults] = useState<any[]>([]);
@@ -13,7 +13,7 @@ const Index = () => {
       <div className="min-h-screen flex flex-col w-full">
         <Header session={null} />
         <div className="flex flex-1">
-          <Sidebar className="w-64" />
+          <AppSidebar />
           <main className="flex-1">
             <div className="container py-6">
               <MainContent
