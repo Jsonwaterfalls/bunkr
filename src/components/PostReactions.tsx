@@ -28,10 +28,10 @@ export const PostReactions = ({ postId, userId }: PostReactionsProps) => {
   });
 
   const hasLiked = reactions?.some(
-    (reaction) => reaction.user_id === userId && reaction.type === "like"
+    (reaction) => (!reaction.user_id || reaction.user_id === userId) && reaction.type === "like"
   );
   const hasBookmarked = reactions?.some(
-    (reaction) => reaction.user_id === userId && reaction.type === "bookmark"
+    (reaction) => (!reaction.user_id || reaction.user_id === userId) && reaction.type === "bookmark"
   );
 
   const mutation = useMutation({
@@ -43,17 +43,19 @@ export const PostReactions = ({ postId, userId }: PostReactionsProps) => {
       action: "add" | "remove";
     }) => {
       if (action === "add") {
+        // For beta testing, don't include user_id in the insert
         const { error } = await supabase
           .from("post_reactions")
-          .insert([{ post_id: postId, user_id: userId, type }]);
+          .insert([{ post_id: postId, type }]);
         if (error) throw error;
       } else {
+        // For beta testing, delete based on post_id and type only
         const { error } = await supabase
           .from("post_reactions")
           .delete()
           .eq("post_id", postId)
-          .eq("user_id", userId)
-          .eq("type", type);
+          .eq("type", type)
+          .is("user_id", null);
         if (error) throw error;
       }
     },
@@ -71,15 +73,6 @@ export const PostReactions = ({ postId, userId }: PostReactionsProps) => {
   });
 
   const handleReaction = (type: "like" | "bookmark") => {
-    if (!userId) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Required",
-        description: "Please sign in to react to posts.",
-      });
-      return;
-    }
-
     const isActive = type === "like" ? hasLiked : hasBookmarked;
     mutation.mutate({
       type,
