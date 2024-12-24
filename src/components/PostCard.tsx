@@ -26,52 +26,75 @@ interface PostCardProps {
 }
 
 export const PostCard = ({ post }: PostCardProps) => {
-  // For beta testing, use a default user
   const defaultUserId = "00000000-0000-0000-0000-000000000000";
   const [referencePost, setReferencePost] = useState<any>(null);
   const [postUser, setPostUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (post.reference_post_id) {
-      supabase
-        .from("posts")
-        .select("*")
-        .eq("id", post.reference_post_id)
-        .maybeSingle()
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Error fetching reference post:', error);
-            return;
-          }
-          setReferencePost(data);
-        });
-    }
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
 
-    // Only fetch profile if user_id exists
-    if (post.user_id) {
-      supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", post.user_id)
-        .maybeSingle()
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Error fetching profile:', error);
+        // Fetch reference post if it exists
+        if (post.reference_post_id) {
+          const { data: refPost, error: refError } = await supabase
+            .from("posts")
+            .select("*")
+            .eq("id", post.reference_post_id)
+            .maybeSingle();
+
+          if (refError) {
+            console.error('Error fetching reference post:', refError);
+          } else {
+            setReferencePost(refPost);
+          }
+        }
+
+        // Fetch user profile if user_id exists
+        if (post.user_id) {
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", post.user_id)
+            .maybeSingle();
+
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
             toast({
               title: "Error",
               description: "Failed to load user profile",
               variant: "destructive",
             });
-            return;
+          } else {
+            setPostUser(profile || { username: "Anonymous User" });
           }
-          setPostUser(data || { username: "Anonymous User" });
+        } else {
+          setPostUser({ username: "Anonymous User" });
+        }
+      } catch (error) {
+        console.error('Unexpected error:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
         });
-    } else {
-      // Set default anonymous user data if no user_id
-      setPostUser({ username: "Anonymous User" });
-    }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, [post.reference_post_id, post.user_id, toast]);
+
+  if (isLoading) {
+    return (
+      <Card className="w-full animate-pulse">
+        <div className="h-32 bg-gray-200 rounded-lg"></div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full animate-fadeIn">
