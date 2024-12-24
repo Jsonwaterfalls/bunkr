@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 interface PostCardProps {
   post: {
     id: string;
-    user_id: string;
+    user_id: string | null;
     statement: string;
     created_at: string;
     reference_post_id?: string;
@@ -48,30 +48,36 @@ export const PostCard = ({ post }: PostCardProps) => {
         });
     }
 
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", post.user_id)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Error fetching profile:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load user profile",
-            variant: "destructive",
-          });
-          return;
-        }
-        setPostUser(data || { username: "Anonymous User" });
-      });
+    // Only fetch profile if user_id exists
+    if (post.user_id) {
+      supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", post.user_id)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Error fetching profile:', error);
+            toast({
+              title: "Error",
+              description: "Failed to load user profile",
+              variant: "destructive",
+            });
+            return;
+          }
+          setPostUser(data || { username: "Anonymous User" });
+        });
+    } else {
+      // Set default anonymous user data if no user_id
+      setPostUser({ username: "Anonymous User" });
+    }
   }, [post.reference_post_id, post.user_id, toast]);
 
   return (
     <Card className="w-full animate-fadeIn">
       <CardHeader className="pb-2">
         <PostHeader
-          postUserId={post.user_id}
+          postUserId={post.user_id || defaultUserId}
           postUsername={postUser?.username || "Anonymous User"}
           currentUserId={defaultUserId}
           createdAt={post.created_at}
