@@ -31,8 +31,8 @@ export const NotificationsPopover = () => {
         .from("notifications")
         .select(`
           *,
-          actor:actor_id(username),
-          post:post_id(statement)
+          actor:profiles!notifications_actor_id_fkey(username),
+          post:posts!notifications_post_id_fkey(statement)
         `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
