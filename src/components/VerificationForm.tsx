@@ -1,27 +1,19 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { useVerification } from "@/hooks/useVerification";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "./ui/label";
-import { Switch } from "./ui/switch";
 import { Upload, Image, Film } from "lucide-react";
 import { TagInput } from "./TagInput";
 
-interface VerificationFormProps {
-  onVerify: (statement: string, results: any[]) => void;
-}
-
-export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
+export const VerificationForm = () => {
   const [statement, setStatement] = useState("");
-  const [shouldVerify, setShouldVerify] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const { isVerifying, verifyStatement } = useVerification(onVerify);
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,10 +103,6 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         if (postTagsError) throw postTagsError;
       }
 
-      if (shouldVerify) {
-        await verifyStatement(statement);
-      }
-
       setStatement("");
       setMediaFile(null);
       setSelectedTags([]);
@@ -150,23 +138,12 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         <VoiceRecorder onTranscription={handleTranscription} />
       </div>
       
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="verify-mode"
-            checked={shouldVerify}
-            onCheckedChange={setShouldVerify}
-          />
-          <Label htmlFor="verify-mode">Verify this statement</Label>
-        </div>
-
-        <div>
-          <Label>Tags</Label>
-          <TagInput
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-          />
-        </div>
+      <div>
+        <Label>Tags</Label>
+        <TagInput
+          selectedTags={selectedTags}
+          onTagsChange={setSelectedTags}
+        />
       </div>
 
       <div className="flex items-center gap-4">
@@ -201,7 +178,7 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         </div>
         <Button 
           type="submit" 
-          disabled={isSubmitting || (!statement.trim() && !mediaFile) || (shouldVerify && isVerifying)}
+          disabled={isSubmitting || (!statement.trim() && !mediaFile)}
         >
           {isSubmitting ? "Posting..." : "Post"}
         </Button>
