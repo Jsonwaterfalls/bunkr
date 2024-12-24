@@ -6,6 +6,8 @@ import { SharePostDialog } from "../SharePostDialog";
 import { CommentSection } from "../CommentSection";
 import { useVerification } from "@/hooks/useVerification";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface PostFooterProps {
   postId: string;
@@ -17,11 +19,54 @@ export const PostFooter = ({ postId, userId, statement }: PostFooterProps) => {
   const [showComments, setShowComments] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
-  const { verifyStatement } = useVerification((statement, results) => {
-    toast({
-      title: "Verification Complete",
-      description: "The statement has been verified. Check the results above.",
-    });
+
+  // Query for verification results
+  const { data: verificationResults, refetch: refetchResults } = useQuery({
+    queryKey: ["verification-results", postId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("verification_results")
+        .select("*")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { verifyStatement } = useVerification(async (statement, results) => {
+    try {
+      // Insert verification results into the database
+      const { error } = await supabase
+        .from("verification_results")
+        .insert(
+          results.map(result => ({
+            post_id: postId,
+            model: result.model,
+            confidence: result.confidence,
+            reasoning: result.reasoning,
+            verdict: result.verdict,
+          }))
+        );
+
+      if (error) throw error;
+
+      // Refetch results to update the UI
+      await refetchResults();
+
+      toast({
+        title: "Verification Complete",
+        description: "The statement has been verified. Check the results above.",
+      });
+    } catch (error) {
+      console.error("Error saving verification results:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save verification results",
+        variant: "destructive",
+      });
+    }
   });
 
   const handleVerify = async () => {

@@ -17,12 +17,6 @@ interface PostCardProps {
     reference_post_id?: string;
     media_url?: string | null;
     media_type?: string | null;
-    verification_results: Array<{
-      verdict: string;
-      confidence: number;
-      reasoning: string;
-      model: string;
-    }>;
   };
 }
 
@@ -43,6 +37,21 @@ export const PostCard = ({ post }: PostCardProps) => {
 
       if (error) throw error;
       return postTags?.map(pt => pt.tags.name) || [];
+    },
+  });
+
+  // Query for verification results
+  const { data: verificationResults } = useQuery({
+    queryKey: ["verification-results", post.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("verification_results")
+        .select("*")
+        .eq("post_id", post.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -71,8 +80,8 @@ export const PostCard = ({ post }: PostCardProps) => {
                 mediaType={post.media_type}
                 tags={tags}
               />
-              {post.verification_results?.length > 0 && (
-                <PostVerificationResults results={post.verification_results} />
+              {verificationResults && verificationResults.length > 0 && (
+                <PostVerificationResults results={verificationResults} />
               )}
             </CardContent>
             <CardFooter>
