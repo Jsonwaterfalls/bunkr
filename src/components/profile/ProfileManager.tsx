@@ -36,7 +36,11 @@ export const ProfileManager = () => {
     }
   };
 
-  const handleUpdateUsername = async (username: string) => {
+  const handleUpdateUsername = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const username = formData.get("username") as string;
+    
     try {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) {
@@ -71,8 +75,12 @@ export const ProfileManager = () => {
     }
   };
 
-  const handleAvatarUpload = async (file: File) => {
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error("Please select an image to upload.");
+      }
+
       setUploading(true);
       const user = (await supabase.auth.getUser()).data.user;
       
@@ -85,6 +93,7 @@ export const ProfileManager = () => {
         return;
       }
 
+      const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}-${Math.random()}.${fileExt}`;
 
@@ -100,7 +109,7 @@ export const ProfileManager = () => {
 
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: filePath })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
