@@ -9,6 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 
@@ -37,15 +38,17 @@ const menuItems = [
 
 export function AppSidebar() {
   const navigate = useNavigate();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   return (
     <>
-      <Sidebar className="w-64">
+      <Sidebar className="w-64" variant="sidebar" collapsible="icon">
         <SidebarContent>
           <SidebarGroup>
             <div className="flex items-center justify-between px-2 py-2">
-              <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-              <SidebarTrigger />
+              {!isCollapsed && <SidebarGroupLabel>Navigation</SidebarGroupLabel>}
+              <SidebarTrigger className="ml-auto" />
             </div>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -53,7 +56,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       onClick={() => navigate(item.path)}
-                      tooltip={item.title}
+                      tooltip={isCollapsed ? item.title : undefined}
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
