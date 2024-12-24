@@ -175,6 +175,39 @@ export type Database = {
           },
         ]
       }
+      post_tags: {
+        Row: {
+          created_at: string | null
+          post_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          post_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string | null
+          post_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_tags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           created_at: string | null
@@ -243,6 +276,24 @@ export type Database = {
           phone_number?: string | null
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

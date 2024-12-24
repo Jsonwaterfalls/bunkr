@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Upload, Image, Film } from "lucide-react";
+import { TagInput } from "./TagInput";
 
 interface VerificationFormProps {
   onVerify: (statement: string, results: any[]) => void;
@@ -17,6 +18,7 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
   const [statement, setStatement] = useState("");
   const [shouldVerify, setShouldVerify] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { isVerifying, verifyStatement } = useVerification(onVerify);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +26,6 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file type
       if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
         toast({
           title: "Invalid file type",
@@ -33,7 +34,6 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         });
         return;
       }
-      // Check file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -63,9 +63,7 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
           .from('media')
           .upload(filePath, mediaFile);
 
-        if (uploadError) {
-          throw uploadError;
-        }
+        if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
           .from('media')
@@ -90,12 +88,36 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
 
       if (postError) throw postError;
 
+      // Add tags to the post
+      if (selectedTags.length > 0) {
+        // First, ensure all tags exist and get their IDs
+        const { data: existingTags, error: tagsError } = await supabase
+          .from('tags')
+          .select('id, name')
+          .in('name', selectedTags);
+
+        if (tagsError) throw tagsError;
+
+        // Create post_tags entries
+        const postTags = existingTags.map(tag => ({
+          post_id: post.id,
+          tag_id: tag.id
+        }));
+
+        const { error: postTagsError } = await supabase
+          .from('post_tags')
+          .insert(postTags);
+
+        if (postTagsError) throw postTagsError;
+      }
+
       if (shouldVerify) {
         await verifyStatement(statement);
       }
 
       setStatement("");
       setMediaFile(null);
+      setSelectedTags([]);
       toast({
         title: "Success",
         description: "Your post has been created successfully",
@@ -128,13 +150,23 @@ export const VerificationForm = ({ onVerify }: VerificationFormProps) => {
         <VoiceRecorder onTranscription={handleTranscription} />
       </div>
       
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="verify-mode"
-          checked={shouldVerify}
-          onCheckedChange={setShouldVerify}
-        />
-        <Label htmlFor="verify-mode">Verify this statement</Label>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="verify-mode"
+            checked={shouldVerify}
+            onCheckedChange={setShouldVerify}
+          />
+          <Label htmlFor="verify-mode">Verify this statement</Label>
+        </div>
+
+        <div>
+          <Label>Tags</Label>
+          <TagInput
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

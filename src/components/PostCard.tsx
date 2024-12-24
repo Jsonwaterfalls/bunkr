@@ -5,6 +5,8 @@ import { PostVerificationResults } from "./post/PostVerificationResults";
 import { PostFooter } from "./post/PostFooter";
 import { PostDataProvider } from "./post/PostDataProvider";
 import { PostLoadingSkeleton } from "./post/PostLoadingSkeleton";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PostCardProps {
   post: {
@@ -26,6 +28,23 @@ interface PostCardProps {
 
 export const PostCard = ({ post }: PostCardProps) => {
   const defaultUserId = "00000000-0000-0000-0000-000000000000";
+
+  const { data: tags } = useQuery({
+    queryKey: ["post-tags", post.id],
+    queryFn: async () => {
+      const { data: postTags, error } = await supabase
+        .from("post_tags")
+        .select(`
+          tags (
+            name
+          )
+        `)
+        .eq("post_id", post.id);
+
+      if (error) throw error;
+      return postTags?.map(pt => pt.tags.name) || [];
+    },
+  });
 
   return (
     <PostDataProvider post={post}>
@@ -50,6 +69,7 @@ export const PostCard = ({ post }: PostCardProps) => {
                 referencePost={referencePost}
                 mediaUrl={post.media_url}
                 mediaType={post.media_type}
+                tags={tags}
               />
               {post.verification_results?.length > 0 && (
                 <PostVerificationResults results={post.verification_results} />
