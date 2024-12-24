@@ -8,24 +8,22 @@ import { Feed } from "@/components/Feed";
 interface MainContentProps {
   verificationResults: any[];
   currentStatement: string;
-  onVerify: (statement: string, results: any[]) => void;
 }
 
 export const MainContent = ({
   verificationResults,
   currentStatement,
-  onVerify,
 }: MainContentProps) => {
   return (
     <div className="w-full space-y-8">
       <Tabs defaultValue="verify" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="verify">Verify Statement</TabsTrigger>
+          <TabsTrigger value="verify">My Stuff</TabsTrigger>
           <TabsTrigger value="explore">Explore</TabsTrigger>
         </TabsList>
         
         <TabsContent value="verify" className="space-y-4">
-          <VerificationForm onVerify={onVerify} />
+          <VerificationForm />
           {verificationResults.length > 0 && (
             <ResultCard
               statement={currentStatement}
