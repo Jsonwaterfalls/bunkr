@@ -35,6 +35,8 @@ export const PostFooter = ({ postId, userId, statement }: PostFooterProps) => {
     },
   });
 
+  const hasBeenVerified = verificationResults && verificationResults.length > 0;
+
   const { verifyStatement } = useVerification(async (statement, results) => {
     try {
       // Insert verification results into the database
@@ -70,6 +72,15 @@ export const PostFooter = ({ postId, userId, statement }: PostFooterProps) => {
   });
 
   const handleVerify = async () => {
+    if (hasBeenVerified) {
+      toast({
+        title: "Already Verified",
+        description: "This post has already been verified.",
+        variant: "default",
+      });
+      return;
+    }
+
     setIsVerifying(true);
     try {
       await verifyStatement(statement);
@@ -88,10 +99,10 @@ export const PostFooter = ({ postId, userId, statement }: PostFooterProps) => {
             size="sm"
             className="gap-2"
             onClick={handleVerify}
-            disabled={isVerifying}
+            disabled={isVerifying || hasBeenVerified}
           >
             <CheckCircle className="h-4 w-4" />
-            {isVerifying ? "Verifying..." : "Verify"}
+            {isVerifying ? "Verifying..." : hasBeenVerified ? "Verified" : "Verify"}
           </Button>
           <SharePostDialog post={{ id: postId, statement }} />
           <Button
