@@ -24,15 +24,20 @@ export const Feed = () => {
         .order("created_at", { ascending: false });
 
       if (feedType === "following") {
-        const { data: followingIds } = await supabase
-          .from("follows")
-          .select("following_id")
-          .eq("follower_id", defaultUserId);
+        // Only fetch following posts if we have a valid user ID
+        if (defaultUserId) {
+          const { data: followingIds } = await supabase
+            .from("follows")
+            .select("following_id")
+            .eq("follower_id", defaultUserId);
 
-        const followingUserIds = followingIds?.map(f => f.following_id) || [];
-        
-        if (followingUserIds.length > 0) {
-          query = query.in("user_id", followingUserIds);
+          const followingUserIds = followingIds?.map(f => f.following_id) || [];
+          
+          if (followingUserIds.length > 0) {
+            query = query.in("user_id", followingUserIds);
+          } else {
+            return [];
+          }
         } else {
           return [];
         }
@@ -40,8 +45,9 @@ export const Feed = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data || [];
     },
+    enabled: feedType === "all" || Boolean(defaultUserId), // Only run the query if we have what we need
   });
 
   if (isLoading) {
@@ -75,7 +81,7 @@ export const Feed = () => {
           {posts?.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
-          {posts?.length === 0 && (
+          {!posts?.length && (
             <div className="text-center text-muted-foreground py-8">
               {feedType === "following" 
                 ? "No posts from users you follow. Start following some users!"
