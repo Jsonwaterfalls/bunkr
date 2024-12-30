@@ -13,21 +13,22 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route
-              path="/app"
+              path="/app/*"
               element={
                 <AuthWrapper>
                   <Index />
@@ -45,8 +46,8 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </TooltipProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 
