@@ -24,7 +24,7 @@ const SignUpForm = () => {
         options: {
           data: {
             username,
-            phone_number: phoneNumber,
+            phone_number: phoneNumber || null, // Make phone number optional
           },
         },
       });
@@ -61,14 +61,13 @@ const SignUpForm = () => {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="phoneNumber">Phone Number</Label>
+        <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
         <Input
           id="phoneNumber"
           type="tel"
           placeholder="+1234567890"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
-          required
           disabled={isLoading}
         />
       </div>
